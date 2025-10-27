@@ -1,355 +1,274 @@
 % ============================================
-% UNIVERSITY HOSTEL FACILITY RECOMMENDATION SYSTEM
+% UNIVERSITY HOSTEL FACILITY RECOMMENDER SYSTEM
+% Knowledge Base for Student Hostel Eligibility
 % ============================================
 
-% --- Student Financial Information ---
-% family_income(father_salary, mother_salary, total_family_income)
-family_income_threshold(very_low, 0, 30000).
-family_income_threshold(low, 30001, 50000).
-family_income_threshold(middle, 50001, 80000).
-family_income_threshold(high, 80001, 120000).
-family_income_threshold(very_high, 120001, 500000).
+% --- Distance Categories (in km) ---
+% Distance ranges: 0-50 (25), 50-100 (75), 100-150 (125), 150-200 (175), above 200 (225)
+distance_category(very_far, Distance) :- Distance > 150.
+distance_category(far, Distance) :- Distance > 75, Distance =< 150.
+distance_category(moderate, Distance) :- Distance > 25, Distance =< 75.
+distance_category(near, Distance) :- Distance > 10, Distance =< 25.
+distance_category(very_near, Distance) :- Distance =< 10.
 
-% --- Distance from University (in kilometers) ---
-distance_category(very_near, 0, 5).
-distance_category(near, 6, 15).
-distance_category(moderate, 16, 30).
-distance_category(far, 31, 50).
-distance_category(very_far, 51, 100).
-
-% --- Scholarship Information ---
-scholarship_type(mahapola, available).
-scholarship_type(mahapola, not_available).
-scholarship_type(samurdhi, available).
-scholarship_type(samurdhi, not_available).
-scholarship_type(merit_based, available).
-scholarship_type(merit_based, not_available).
-
-% --- Academic Performance Categories ---
-academic_performance(excellent, 85, 100).
-academic_performance(good, 70, 84).
-academic_performance(average, 55, 69).
-academic_performance(poor, 0, 54).
-
-% --- Priority Levels ---
-priority_level(emergency, 1).
-priority_level(high, 2).
-priority_level(medium, 3).
-priority_level(low, 4).
-priority_level(very_low, 5).
-
-% --- Hostel Capacity Information ---
-hostel_capacity(boys_hostel, 200, 180).  % (hostel_name, total_capacity, current_occupancy)
-hostel_capacity(girls_hostel, 150, 135).
-hostel_capacity(mixed_hostel, 100, 85).
-
-% --- Special Categories ---
-special_category(disabled).
-special_category(orphan).
-special_category(single_parent).
-special_category(chronic_illness).
-special_category(financial_hardship).
-
-% --- District Information ---
-district_category(colombo, urban).
-district_category(gampaha, urban).
-district_category(kalutara, urban).
-district_category(kandy, semi_urban).
-district_category(galle, semi_urban).
-district_category(matara, semi_urban).
-district_category(hambantota, rural).
-district_category(ratnapura, rural).
-district_category(kegalle, rural).
-district_category(kurunegala, rural).
-district_category(puttalam, rural).
-district_category(anuradhapura, rural).
-district_category(polonnaruwa, rural).
-district_category(badulla, rural).
-district_category(monaragala, rural).
-district_category(ampara, rural).
-district_category(batticaloa, rural).
-district_category(trincomalee, rural).
-district_category(vavuniya, rural).
-district_category(mannar, rural).
-district_category(jaffna, rural).
-district_category(kilinochchi, rural).
-district_category(mullaitivu, rural).
-
-% --- Family Size Categories ---
-family_size_category(small, 1, 3).
-family_size_category(medium, 4, 6).
-family_size_category(large, 7, 15).
-
-% --- Study Year Information ---
-study_year(first_year, 1).
-study_year(second_year, 2).
-study_year(third_year, 3).
-study_year(fourth_year, 4).
-study_year(postgraduate, 5).
-
-% --- Gender Categories ---
-gender_category(male).
-gender_category(female).
-
-% --- Parent Employment Status ---
-employment_status(employed).
-employment_status(unemployed).
-employment_status(retired).
-employment_status(deceased).
-
-% --- Transportation Availability ---
-transport_availability(excellent).
-transport_availability(good).
-transport_availability(fair).
-transport_availability(poor).
-transport_availability(none).
-
-% ============================================
-% INFERENCE RULES (20+ RULES AS REQUIRED)
-% ============================================
-
-% Rule 1: Check if student qualifies based on family income alone
-qualifies_by_income(FatherSalary, MotherSalary, Category) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    family_income_threshold(Category, Min, Max),
-    TotalIncome >= Min,
-    TotalIncome =< Max,
-    (Category = very_low; Category = low).
-
-% Rule 2: Check if distance justifies hostel need
-needs_hostel_by_distance(Distance, Justification) :-
-    Distance > 30,
-    Justification = 'Long distance from university requires hostel accommodation'.
-
-needs_hostel_by_distance(Distance, Justification) :-
-    Distance > 15,
-    Distance =< 30,
-    Justification = 'Moderate distance makes hostel accommodation beneficial'.
-
-% Rule 3: Scholarship availability increases eligibility
-scholarship_advantage(MahapolaStatus, SamurdhiStatus, Advantage) :-
-    MahapolaStatus = available,
-    SamurdhiStatus = available,
-    Advantage = 'Both Mahapola and Samurdhi scholarships provide strong financial support'.
-
-scholarship_advantage(MahapolaStatus, SamurdhiStatus, Advantage) :-
-    (MahapolaStatus = available; SamurdhiStatus = available),
-    Advantage = 'Scholarship availability provides financial assistance'.
-
-% Rule 4: Special category students get priority
-special_category_priority(Category, Priority) :-
-    member(Category, [disabled, orphan, single_parent, chronic_illness]),
-    Priority = emergency.
-
-% Rule 5: Calculate priority based on multiple factors
-calculate_priority(FatherSalary, MotherSalary, Distance, SpecialCategory, Priority) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    TotalIncome < 30000,
-    Distance > 30,
-    member(SpecialCategory, [disabled, orphan, single_parent]),
-    Priority = emergency.
-
-calculate_priority(FatherSalary, MotherSalary, Distance, _, Priority) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    TotalIncome < 30000,
-    Distance > 15,
-    Priority = high.
-
-calculate_priority(FatherSalary, MotherSalary, Distance, _, Priority) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    TotalIncome < 50000,
-    Distance > 30,
-    Priority = high.
-
-calculate_priority(FatherSalary, MotherSalary, _, _, Priority) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    TotalIncome >= 80000,
-    Priority = low.
-
-calculate_priority(_, _, _, _, Priority) :-
-    Priority = medium.
-
-% Rule 6: Check hostel availability
-hostel_available(Gender, Available) :-
-    (Gender = male -> HostelType = boys_hostel; HostelType = girls_hostel),
-    hostel_capacity(HostelType, Total, Current),
-    Available is Total - Current,
-    Available > 0.
-
-% Rule 7: Academic performance affects eligibility
-academic_eligibility(GPA, Status) :-
-    GPA >= 2.5,
-    Status = eligible.
-
-academic_eligibility(GPA, Status) :-
-    GPA < 2.5,
-    Status = 'Academic performance below minimum requirement (2.5 GPA)'.
-
-% Rule 8: Rural students get preference
-rural_student_preference(District, Preference) :-
-    district_category(District, rural),
-    Preference = 'Rural area student - gets preference for hostel accommodation'.
-
-% Rule 9: Family size consideration
-large_family_consideration(FamilySize, Consideration) :-
-    FamilySize >= 7,
-    Consideration = 'Large family size indicates additional financial burden'.
-
-% Rule 10: First-year student priority
-first_year_priority(Year, Priority) :-
-    Year = 1,
-    Priority = 'First-year students get higher priority for adjustment'.
-
-% Rule 11: Combined financial hardship assessment
-severe_financial_hardship(FatherSalary, MotherSalary, FamilySize, Hardship) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    PerCapitaIncome is TotalIncome / FamilySize,
-    PerCapitaIncome < 5000,
-    Hardship = 'Severe financial hardship - per capita income below poverty line'.
-
-% Rule 12: Transportation difficulty assessment
-transport_difficulty(Distance, TransportAvailability, Difficulty) :-
-    Distance > 25,
-    member(TransportAvailability, [poor, none]),
-    Difficulty = 'Poor transportation with long distance creates significant hardship'.
-
-% Rule 13: Single parent family consideration
-single_parent_support(FatherEmployment, MotherEmployment, Support) :-
-    (FatherEmployment = deceased; MotherEmployment = deceased),
-    Support = 'Single parent family requires additional support'.
-
-% Rule 14: Unemployed parents consideration
-unemployment_hardship(FatherEmployment, MotherEmployment, Hardship) :-
-    FatherEmployment = unemployed,
-    MotherEmployment = unemployed,
-    Hardship = 'Both parents unemployed - extreme financial difficulty'.
-
-% Rule 15: Merit-based consideration
-merit_consideration(GPA, MeritStatus) :-
-    GPA >= 3.5,
-    MeritStatus = 'High academic performance demonstrates merit'.
-
-% Rule 16: Gender-specific hostel availability
-gender_hostel_match(Gender, HostelType) :-
-    Gender = male,
-    HostelType = boys_hostel.
-
-gender_hostel_match(Gender, HostelType) :-
-    Gender = female,
-    HostelType = girls_hostel.
-
-% Rule 17: Chronic illness accommodation need
-medical_accommodation_need(MedicalCondition, Need) :-
-    member(MedicalCondition, [chronic_illness, disability]),
-    Need = 'Medical condition requires stable accommodation for treatment continuity'.
-
-% Rule 18: District development level consideration
-development_level_consideration(District, Consideration) :-
-    district_category(District, rural),
-    Consideration = 'Student from underdeveloped area needs educational opportunity support'.
-
-% Rule 19: Age-based priority (for older students)
-age_priority(Age, Priority) :-
-    Age >= 25,
-    Priority = 'Mature student with potentially different accommodation needs'.
-
-% Rule 20: Combined scholarship and income assessment
-scholarship_income_assessment(MahapolaStatus, SamurdhiStatus, FatherSalary, MotherSalary, Assessment) :-
-    TotalIncome is FatherSalary + MotherSalary,
-    MahapolaStatus = available,
-    SamurdhiStatus = available,
-    TotalIncome < 40000,
-    Assessment = 'Multiple scholarships with low income - highly eligible'.
-
-% Rule 21: Final hostel recommendation
-recommend_hostel(FatherSalary, MotherSalary, Distance, Gender, GPA, MahapolaStatus, SamurdhiStatus, 
-                SpecialCategory, District, FamilySize, Year, Recommendation, Reasons) :-
-    
-    % Check basic eligibility
-    academic_eligibility(GPA, AcademicStatus),
-    AcademicStatus = eligible,
-    
-    % Check hostel availability
-    hostel_available(Gender, AvailableSpots),
-    AvailableSpots > 0,
-    
-    % Calculate priority
-    calculate_priority(FatherSalary, MotherSalary, Distance, SpecialCategory, Priority),
-    
-    % Collect all supporting reasons
-    findall(Reason, (
-        (qualifies_by_income(FatherSalary, MotherSalary, _), 
-         Reason = 'Qualifies based on low family income');
-        (needs_hostel_by_distance(Distance, Reason));
-        (scholarship_advantage(MahapolaStatus, SamurdhiStatus, Reason));
-        (rural_student_preference(District, Reason));
-        (large_family_consideration(FamilySize, Reason));
-        (first_year_priority(Year, Reason));
-        (severe_financial_hardship(FatherSalary, MotherSalary, FamilySize, Reason))
-    ), ReasonsList),
-    
-    % Determine recommendation based on priority
-    (Priority = emergency -> 
-        Recommendation = 'HIGHLY RECOMMENDED - Emergency Priority';
-    Priority = high ->
-        Recommendation = 'RECOMMENDED - High Priority';
-    Priority = medium ->
-        Recommendation = 'CONDITIONALLY RECOMMENDED - Medium Priority';
-    Priority = low ->
-        Recommendation = 'LOW PRIORITY - Consider alternatives'
-    ),
-    
-    % Combine all reasons
-    atomic_list_concat(ReasonsList, '; ', Reasons).
-
-% Rule 22: Rejection cases
-reject_hostel(FatherSalary, MotherSalary, Distance, Gender, GPA, Rejection, Reasons) :-
-    (   
-        % Academic performance insufficient
-        academic_eligibility(GPA, AcademicStatus),
-        AcademicStatus \= eligible,
-        Rejection = 'NOT RECOMMENDED',
-        Reasons = 'Academic performance below minimum requirement (2.5 GPA)'
-    ;   
-        % No hostel availability
-        \+ hostel_available(Gender, _),
-        Rejection = 'NOT RECOMMENDED',
-        Reasons = 'No available hostel capacity for your gender category'
-    ;   
-        % High income and short distance
-        TotalIncome is FatherSalary + MotherSalary,
-        TotalIncome > 100000,
-        Distance < 15,
-        Rejection = 'NOT RECOMMENDED',
-        Reasons = 'High family income and short distance from university - hostel not necessary'
-    ).
-
-% ============================================
-% HELPER PREDICATES
-% ============================================
-
-% Check if student is from rural area
-is_rural_student(District) :-
-    district_category(District, rural).
-
-% Check if student has any scholarship
-has_scholarship(MahapolaStatus, SamurdhiStatus) :-
-    (MahapolaStatus = available; SamurdhiStatus = available).
-
-% Calculate total family income
-total_family_income(FatherSalary, MotherSalary, Total) :-
+% --- Income Categories (monthly family income in LKR) ---
+combined_income(FatherSalary, MotherSalary, Total) :-
     Total is FatherSalary + MotherSalary.
 
-% Check if student is in special category
-is_special_category(Category) :-
-    member(Category, [disabled, orphan, single_parent, chronic_illness, financial_hardship]).
+income_category(very_low, Income) :- Income < 25000.
+income_category(low, Income) :- Income >= 25000, Income < 50000.
+income_category(middle, Income) :- Income >= 50000, Income < 100000.
+income_category(high, Income) :- Income >= 100000, Income < 200000.
+income_category(very_high, Income) :- Income >= 200000.
+
+% --- Financial Support Status ---
+has_financial_support(mahapola, samurdhi) :- !.
+has_financial_support(mahapola, none) :- !.
+has_financial_support(none, samurdhi) :- !.
+has_no_support(none, none).
+
+% --- Sibling Education Status ---
+siblings_in_university(Count) :- Count > 0.
+no_siblings_in_university(0).
+
+% --- Special Circumstances ---
+special_circumstance(orphan).
+special_circumstance(single_parent).
+special_circumstance(disabled_parent).
+special_circumstance(chronic_illness_family).
+special_circumstance(natural_disaster_affected).
+special_circumstance(none).
+
+% --- Student Status ---
+student_year(first_year).
+student_year(second_year).
+student_year(third_year).
+student_year(fourth_year).
+student_year(postgraduate).
+
+% ============================================
+% ELIGIBILITY RULES (20 RULES)
+% ============================================
+
+% Rule 1: High Priority - Very far distance with low income
+high_priority_distance_income(Distance, FatherSalary, MotherSalary) :-
+    distance_category(very_far, Distance),
+    combined_income(FatherSalary, MotherSalary, Total),
+    income_category(very_low, Total).
+
+% Rule 2: High Priority - Far distance with financial support
+high_priority_distance_support(Distance, Mahapola, Samurdhi) :-
+    (distance_category(very_far, Distance); distance_category(far, Distance)),
+    has_financial_support(Mahapola, Samurdhi).
+
+% Rule 3: High Priority - Special circumstances
+high_priority_special(SpecialCase) :-
+    special_circumstance(SpecialCase),
+    SpecialCase \= none.
+
+% Rule 4: High Priority - Orphan or single parent with low income
+high_priority_vulnerable(SpecialCase, FatherSalary, MotherSalary) :-
+    (SpecialCase = orphan; SpecialCase = single_parent),
+    combined_income(FatherSalary, MotherSalary, Total),
+    (income_category(very_low, Total); income_category(low, Total)).
+
+% Rule 5: Medium Priority - Moderate distance with low income
+medium_priority_distance_income(Distance, FatherSalary, MotherSalary) :-
+    distance_category(moderate, Distance),
+    combined_income(FatherSalary, MotherSalary, Total),
+    (income_category(very_low, Total); income_category(low, Total)).
+
+% Rule 6: Medium Priority - Far distance with middle income and siblings
+medium_priority_family_burden(Distance, FatherSalary, MotherSalary, Siblings) :-
+    distance_category(far, Distance),
+    combined_income(FatherSalary, MotherSalary, Total),
+    income_category(middle, Total),
+    siblings_in_university(Siblings).
+
+% Rule 7: Medium Priority - Financial support with moderate distance
+medium_priority_support_distance(Distance, Mahapola, Samurdhi) :-
+    distance_category(moderate, Distance),
+    has_financial_support(Mahapola, Samurdhi).
+
+% Rule 8: Medium Priority - Natural disaster affected
+medium_priority_disaster(SpecialCase, Distance) :-
+    SpecialCase = natural_disaster_affected,
+    (distance_category(moderate, Distance); 
+     distance_category(far, Distance); 
+     distance_category(very_far, Distance)).
+
+% Rule 9: Low Priority - Near distance with high income
+low_priority_near_wealthy(Distance, FatherSalary, MotherSalary) :-
+    (distance_category(near, Distance); distance_category(very_near, Distance)),
+    combined_income(FatherSalary, MotherSalary, Total),
+    (income_category(high, Total); income_category(very_high, Total)).
+
+% Rule 10: Not Eligible - Very near distance with very high income
+not_eligible_wealthy_near(Distance, FatherSalary, MotherSalary) :-
+    distance_category(very_near, Distance),
+    combined_income(FatherSalary, MotherSalary, Total),
+    income_category(very_high, Total),
+    SpecialCase = none.
+
+% Rule 11: Priority boost for multiple financial supports
+priority_boost_dual_support(Mahapola, Samurdhi) :-
+    Mahapola = mahapola,
+    Samurdhi = samurdhi.
+
+% Rule 12: First year students with distance priority
+first_year_priority(Year, Distance) :-
+    Year = first_year,
+    (distance_category(very_far, Distance); distance_category(far, Distance)).
+
+% Rule 13: Postgraduate priority with financial need
+postgraduate_priority(Year, FatherSalary, MotherSalary) :-
+    Year = postgraduate,
+    combined_income(FatherSalary, MotherSalary, Total),
+    Total < 100000.
+
+% Rule 14: Income threshold check
+meets_income_threshold(FatherSalary, MotherSalary) :-
+    combined_income(FatherSalary, MotherSalary, Total),
+    Total < 150000.
+
+% Rule 15: Distance threshold check
+meets_distance_threshold(Distance) :-
+    Distance > 25.
+
+% Rule 16: Multiple siblings burden
+significant_family_burden(Siblings, FatherSalary, MotherSalary) :-
+    Siblings >= 2,
+    combined_income(FatherSalary, MotherSalary, Total),
+    income_category(middle, Total).
+
+% Rule 17: Chronic illness with low income
+health_related_priority(SpecialCase, FatherSalary, MotherSalary) :-
+    SpecialCase = chronic_illness_family,
+    combined_income(FatherSalary, MotherSalary, Total),
+    (income_category(very_low, Total); income_category(low, Total)).
+
+% Rule 18: Disabled parent with distance
+disability_distance_priority(SpecialCase, Distance) :-
+    SpecialCase = disabled_parent,
+    (distance_category(moderate, Distance); 
+     distance_category(far, Distance); 
+     distance_category(very_far, Distance)).
+
+% Rule 19: High financial need
+high_financial_need(FatherSalary, MotherSalary, Siblings) :-
+    combined_income(FatherSalary, MotherSalary, Total),
+    (income_category(very_low, Total); income_category(low, Total)),
+    Siblings >= 1.
+
+% Rule 20: Comprehensive eligibility check
+comprehensive_eligibility(Distance, FatherSalary, MotherSalary, Mahapola, Samurdhi) :-
+    meets_distance_threshold(Distance),
+    meets_income_threshold(FatherSalary, MotherSalary),
+    has_financial_support(Mahapola, Samurdhi).
+
+% ============================================
+% MAIN ELIGIBILITY DETERMINATION
+% ============================================
+
+% Calculate eligibility score
+calculate_score(Distance, FatherSalary, MotherSalary, Mahapola, Samurdhi, 
+                Siblings, SpecialCase, Year, Score) :-
+    combined_income(FatherSalary, MotherSalary, TotalIncome),
+    
+    % Distance points (0-30)
+    (distance_category(very_far, Distance) -> DistPoints = 30;
+     distance_category(far, Distance) -> DistPoints = 25;
+     distance_category(moderate, Distance) -> DistPoints = 15;
+     distance_category(near, Distance) -> DistPoints = 5;
+     DistPoints = 0),
+    
+    % Income points (0-25)
+    (income_category(very_low, TotalIncome) -> IncomePoints = 25;
+     income_category(low, TotalIncome) -> IncomePoints = 20;
+     income_category(middle, TotalIncome) -> IncomePoints = 10;
+     income_category(high, TotalIncome) -> IncomePoints = 5;
+     IncomePoints = 0),
+    
+    % Financial support points (0-15)
+    (Mahapola = mahapola, Samurdhi = samurdhi -> SupportPoints = 15;
+     Mahapola = mahapola -> SupportPoints = 10;
+     Samurdhi = samurdhi -> SupportPoints = 10;
+     SupportPoints = 0),
+    
+    % Siblings points (0-10)
+    (Siblings >= 3 -> SiblingPoints = 10;
+     Siblings = 2 -> SiblingPoints = 7;
+     Siblings = 1 -> SiblingPoints = 4;
+     SiblingPoints = 0),
+    
+    % Special circumstance points (0-20)
+    (SpecialCase = orphan -> SpecialPoints = 20;
+     SpecialCase = single_parent -> SpecialPoints = 15;
+     SpecialCase = disabled_parent -> SpecialPoints = 15;
+     SpecialCase = chronic_illness_family -> SpecialPoints = 12;
+     SpecialCase = natural_disaster_affected -> SpecialPoints = 12;
+     SpecialPoints = 0),
+    
+    % Year bonus (0-5)
+    (Year = first_year -> YearPoints = 5;
+     Year = postgraduate -> YearPoints = 3;
+     YearPoints = 0),
+    
+    Score is DistPoints + IncomePoints + SupportPoints + 
+             SiblingPoints + SpecialPoints + YearPoints.
+
+% Determine eligibility based on score
+determine_eligibility(Score, Status, Priority) :-
+    (Score >= 80 -> Status = eligible, Priority = high;
+     Score >= 60 -> Status = eligible, Priority = medium;
+     Score >= 40 -> Status = eligible, Priority = low;
+     Status = not_eligible, Priority = none).
+
+% Generate reasons for decision
+generate_reasons(Distance, FatherSalary, MotherSalary, Mahapola, Samurdhi,
+                Siblings, SpecialCase, Year, Reasons) :-
+    findall(Reason, (
+        (high_priority_distance_income(Distance, FatherSalary, MotherSalary) ->
+            Reason = 'Very far distance with low family income';
+        fail),
+        (high_priority_distance_support(Distance, Mahapola, Samurdhi) ->
+            Reason = 'Long distance with government financial support';
+        fail),
+        (high_priority_special(SpecialCase) ->
+            atom_string(SpecialCase, SpecialStr),
+            atomic_list_concat(['Special circumstance: ', SpecialStr], Reason);
+        fail),
+        (medium_priority_distance_income(Distance, FatherSalary, MotherSalary) ->
+            Reason = 'Moderate distance with low income';
+        fail),
+        (medium_priority_family_burden(Distance, FatherSalary, MotherSalary, Siblings) ->
+            Reason = 'Multiple siblings in university creating financial burden';
+        fail),
+        (high_financial_need(FatherSalary, MotherSalary, Siblings) ->
+            Reason = 'High financial need with siblings in university';
+        fail),
+        (first_year_priority(Year, Distance) ->
+            Reason = 'First year student from far distance';
+        fail),
+        (low_priority_near_wealthy(Distance, FatherSalary, MotherSalary) ->
+            Reason = 'Close proximity to university with high family income';
+        fail)
+    ), Reasons).
+
+% Main evaluation predicate
+evaluate_hostel_eligibility(Distance, FatherSalary, MotherSalary, Mahapola, 
+                           Samurdhi, Siblings, SpecialCase, Year,
+                           Status, Priority, Score, Reasons) :-
+    calculate_score(Distance, FatherSalary, MotherSalary, Mahapola, Samurdhi,
+                   Siblings, SpecialCase, Year, Score),
+    determine_eligibility(Score, Status, Priority),
+    generate_reasons(Distance, FatherSalary, MotherSalary, Mahapola, Samurdhi,
+                    Siblings, SpecialCase, Year, Reasons).
 
 % ============================================
 % QUERY EXAMPLES
 % ============================================
-% ?- recommend_hostel(15000, 8000, 45, male, 3.2, available, not_available, orphan, ratnapura, 6, 1, R, Reasons).
-% ?- reject_hostel(80000, 60000, 10, female, 2.0, R, Reasons).
-% ?- calculate_priority(20000, 12000, 35, disabled, P).
-% ?- scholarship_advantage(available, available, A).
-% ?- needs_hostel_by_distance(40, J).
+% ?- evaluate_hostel_eligibility(60, 20000, 15000, mahapola, samurdhi, 2, orphan, first_year, Status, Priority, Score, Reasons).
+% ?- high_priority_distance_income(55, 18000, 12000).
+% ?- calculate_score(45, 30000, 20000, mahapola, none, 1, single_parent, second_year, Score).
 % ============================================
