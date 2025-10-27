@@ -1,5 +1,5 @@
 """
-University Hostel Facility Recommender System - Streamlit Interface with Prolog Backend
+Expert System for University Hostel Allocation - Streamlit Interface with Prolog Backend
 Requirements: pip install streamlit pyswip
 """
 
@@ -149,7 +149,7 @@ def main():
         </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="main-header">🏠 University Hostel Facility Recommender System</div>', 
+    st.markdown('<div class="main-header">🏠 Expert System for University Hostel Allocation</div>', 
                 unsafe_allow_html=True)
     
     # Initialize Prolog
@@ -619,7 +619,7 @@ For queries, contact: hostel@university.lk
     st.markdown("---")
     st.markdown("""
         <div style='text-align: center; color: #7f8c8d; padding: 1rem;'>
-            <p><strong>University Hostel Facility Recommender System</strong></p>
+            <p><strong>Expert System for University Hostel Allocation</strong></p>
         </div>
     """, unsafe_allow_html=True)
 
